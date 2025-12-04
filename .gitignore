@@ -1,0 +1,150 @@
+# ==========================
+# IDE, editor, environment
+# ==========================
+.vscode/
+.idea/
+.spyderproject
+.spyproject
+.ropeproject
+
+# ==========================
+# Byte-compiled / optimized / DLL files
+# ==========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ==========================
+# Python environment
+# ==========================
+.venv/
+.env/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.Python
+
+# ==========================
+# Distribution / packaging
+# ==========================
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.so
+
+# ==========================
+# PyInstaller
+# ==========================
+*.manifest
+*.spec
+
+# ==========================
+# Logs and temp files
+# ==========================
+pip-log.txt
+pip-delete-this-directory.txt
+*.log
+tmp/
+logs/
+out/
+*.lock
+uv.lock
+
+# ==========================
+# Testing / coverage
+# ==========================
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# ==========================
+# Jupyter
+# ==========================
+.ipynb_checkpoints
+
+# ==========================
+# Python type checkers
+# ==========================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# ==========================
+# Cython
+# ==========================
+cython_debug/
+
+# ==========================
+# Windows metadata
+# ==========================
+*.Zone.Identifier
+.DS_Store
+
+# ==========================
+# Docs, website, Sphinx
+# ==========================
+docs/_build/
+site/
+website/_site
+website/.jekyll-cache
+
+# ==========================
+# Celery
+# ==========================
+celerybeat-schedule
+celerybeat.pid
+
+# ==========================
+# Data folders
+# ==========================
+# Игнорируем системные папки data, но не нужные тестовые данные
+./data/
+
+# Разрешаем нужные файлы данных для тестов
+!./tests/data/household_power_consumption.txt
+!./tests/data/lcld_v2.csv
+!./tests/data/lcld_v2_train_800.csv
+!./tests/data/lcld_v2_test_400.csv
+!./tests/data/lcld_v2_metadata.csv
+!./tests/data/lcld_v2_metadata_api.csv
+!./tests/data/lcld_v2_random_forest.onnx
+!./tests/data/lcld_v2_tabtransformer.pt
+!./tests/data/squad_date_val.parquet
+!./tests/data/squad_val.parquet
+
+# Игнорируем тестовые папки с результатами/мерами, если не нужны
+tests/data/measures/
+
+# ==========================
+# Other temporary files
+# ==========================
+.coverage
+.cometml-runs/
