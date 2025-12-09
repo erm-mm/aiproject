@@ -43,11 +43,17 @@ uv run pytest tests/metrics/prediction_metrics/test_execute.py -s
 
 ## Visualization
 
-To visualize true vs predicted peaks with DeDiPeak metrics:
+To generate a unified visualization dashboard (regression metrics + DeDiPeak metrics):
 ```bash
-uv run tests/metrics/prediction_metrics/visualize_dedipeak.py
+uv run tests/metrics/prediction_metrics/visualize_all.py
 ```
-This generates plots for the first 1000 rows of the dataset, showing predicted vs actual peaks for quick inspection.
+This generates all figures (scatter plots, error plots, metric bar charts, peak comparisons) in a single file:
+```bash
+tests/additional_files/super_dashboard.png
+```
+— includes:
+- Regression: True vs Predicted, Error over Time, Error Distribution, MAE/MSE/R² bar chart
+- DeDiPeak: True vs Predicted Peaks, P3E/P3sw relative to peak range
 
 ## Explanation of Metrics
 
@@ -66,12 +72,6 @@ Data size and quality: Tests use a subset of the dataset (1000 rows for DeDiPeak
 Methodological constraints: Regression metrics (MAE, MSE, R²) measure overall error across the signal, while DeDiPeak metrics focus specifically on peak errors. They complement each other but cannot be directly compared to claim that one is “better.” Metrics require one-dimensional model outputs; multi-dimensional or categorical outputs are not supported without modification.
 
 Visualization and testing: The visualize_dedipeak.py script and tests.ipynb notebook are experimental, with limited functionality, and may be extended in future updates.
-
-## Notes
-
-The tests.ipynb notebook is exploratory and contains small tests and visual checks to verify that regression and DeDiPeak metrics run correctly. Some parts may not work fully yet.
-
-The visualize_dedipeak.py file generates plots of true vs predicted peaks. This file may be extended in the future to include additional visualizations.
 
 ## Project Files
 
@@ -95,23 +95,14 @@ Tests regression metrics (MAE, MSE, R²) on real Household Power Consumption dat
 /a4s-eval/tests/metrics/prediction_metrics/test_dedipeak_metric_real.py
 Tests DeDiPeak metrics (P3E, P3sw) on the first 1000 rows of real Household Power Consumption data to verify correct peak detection and metric computation.
 
-/a4s-eval/tests/metrics/prediction_metrics/visualize_dedipeak.py
-Visualizes true vs predicted peaks using DeDiPeak metrics (P3E, P3sw) on the first 200 rows of Household Power Consumption data for quick testing.
-
 /a4s-eval/tests/metrics/prediction_metrics/test_execute.py
 Executes all main prediction metric tests (regression and DeDiPeak) sequentially using pytest, with a placeholder test to prevent collection errors.
 
-/a4s-eval/tests/additional_files/tests.ipynb
-Exploratory notebook with small tests and visual checks to verify that the regression and DeDiPeak metrics run correctly; includes toy examples, comparisons with sklearn metrics, and plots of predicted vs. true values.
+/a4s-eval/tests/metrics/prediction_metrics/visualize_all.py
+Generates a unified dashboard (super_dashboard.png) containing regression and DeDiPeak figures for quick inspection.
 
 /a4s-eval/tests/data/household_power_consumption.txt
 Subset of the UCI Household Power Consumption dataset, used for testing regression and DeDiPeak metrics on real time-series data. Only a small portion is included to speed up tests. Link
 
-/a4s-eval/tests/additional_files/init.py
-Empty placeholder file required to mark the directory as a Python package and prevent import-related issues during test execution.
-
-/a4s-eval/tests/init.py
-Empty placeholder file required to mark the directory as a Python package and prevent import-related issues during test execution.
-
-/a4s-eval/tests/metrics/prediction_metrics/init.py
-Empty placeholder file required to mark the directory as a Python package and ensure correct module discovery inside the test suite.
+/a4s-eval/tests/additional_files/__init__.py, /a4s-eval/tests/__init__.py, /a4s-eval/tests/metrics/prediction_metrics/__init__.py
+Empty placeholder files for correct Python package structure.
