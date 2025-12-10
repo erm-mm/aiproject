@@ -1,5 +1,5 @@
 # A4S Evaluation module
-# Regression Metrics (MAE, MSE, R2) + DeDePeak metric
+# Regression Metrics (MAE, MSE, R2) + DeDePeak Metric
 
 ## Link to the GitHub repository
 
@@ -102,7 +102,7 @@ Executes all main prediction metric tests (regression and DeDiPeak) sequentially
 Generates a unified dashboard (super_dashboard.png) containing regression and DeDiPeak figures for quick inspection.
 
 /a4s-eval/tests/data/household_power_consumption.txt
-Subset of the UCI Household Power Consumption dataset, used for testing regression and DeDiPeak metrics on real time-series data. Only a small portion is included to speed up tests. Link
+Subset of the UCI Household Power Consumption dataset, used for testing regression and DeDiPeak metrics on real time-series data. Only a small portion is included to speed up tests. Link "https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption"
 
 /a4s-eval/tests/additional_files/__init__.py, /a4s-eval/tests/__init__.py, /a4s-eval/tests/metrics/prediction_metrics/__init__.py
 Empty placeholder files for correct Python package structure.

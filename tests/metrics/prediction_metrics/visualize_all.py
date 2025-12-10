@@ -22,6 +22,7 @@ from a4s_eval.metrics.prediction_metrics.dedipeak_metric import P3E, P3sw
 # Settings
 # -----------------------------
 N_ROWS = 1000  # number of points to visualize
+INSIGHT_ROWS = 200  # number of points for insight figure
 
 # -----------------------------
 # Sampling helper
@@ -37,25 +38,29 @@ def sample_n_rows(y_true, y_pred, n_rows):
 # Compute regression metrics
 # -----------------------------
 def compute_regression_metrics(y_true, y_pred):
-    mae = np.mean(np.abs(y_true - y_pred))
-    mse = np.mean((y_true - y_pred)**2)
-    r2 = 1 - (np.sum((y_true - y_pred)**2) /
-              np.sum((y_true - np.mean(y_true))**2))
-    return mae, mse, r2
+    dataset_dummy = type("Dummy", (), {"y": y_true})()
+    mae_val, _ = regression_metrics.mae(model=None, X=None, dataset=dataset_dummy, y_pred=y_pred)
+    mse_val, _ = regression_metrics.mse(model=None, X=None, dataset=dataset_dummy, y_pred=y_pred)
+    r2_val, _ = regression_metrics.r2(model=None, X=None, dataset=dataset_dummy, y_pred=y_pred)
+    return mae_val, mse_val, r2_val
 
 # -----------------------------
-# Super dashboard (3x2)
+# Super dashboard (3x3)
 # -----------------------------
 def create_super_dashboard(y_true_reg, y_pred_reg, mae, mse, r2,
                            y_true_peak, y_pred_peak, P3E_val, P3sw_val,
+                           y_true_insight, y_pred_insight,
+                           P3E_insight, P3sw_insight,
                            out_path):
     error = y_pred_reg - y_true_reg
+    error_insight = y_pred_insight - y_true_insight
+    peak_range = np.max(y_true_peak) - np.min(y_true_peak)
 
-    fig, axes = plt.subplots(3, 2, figsize=(18, 15))
+    fig, axes = plt.subplots(3, 3, figsize=(24, 18))
     fig.suptitle("Unified Regression + DeDiPeak Dashboard", fontsize=20)
 
     # -------------------------
-    # (1,1) Regression scatter
+    # (0,0) Regression scatter
     # -------------------------
     ax = axes[0,0]
     ax.scatter(y_true_reg, y_pred_reg, alpha=0.5, label="Predicted vs True")
@@ -71,7 +76,7 @@ def create_super_dashboard(y_true_reg, y_pred_reg, mae, mse, r2,
     ax.legend()
 
     # -------------------------
-    # (1,2) Regression error over time
+    # (0,1) Regression error over time
     # -------------------------
     ax = axes[0,1]
     ax.plot(error, alpha=0.6)
@@ -81,19 +86,22 @@ def create_super_dashboard(y_true_reg, y_pred_reg, mae, mse, r2,
     ax.grid(True)
 
     # -------------------------
-    # (2,1) Regression metrics bar chart
+    # (0,2) Regression metrics bar chart
     # -------------------------
-    ax = axes[1,0]
+    ax = axes[0,2]
     metrics = ["MAE", "MSE", "R²"]
     values = [mae, mse, r2]
+    ideal_vals = [0, 0, 1]
     ax.bar(metrics, values, color=["C0","C1","C2"])
+    for i, v in enumerate(values):
+        ax.text(i, v + max(values)*0.05, f"{v:.3f}\n(ideal {ideal_vals[i]})", ha='center')
     ax.set_title("Regression Metrics")
     ax.grid(axis='y')
 
     # -------------------------
-    # (2,2) Regression error histogram
+    # (1,0) Regression error histogram
     # -------------------------
-    ax = axes[1,1]
+    ax = axes[1,0]
     ax.hist(error, bins=40, alpha=0.7, color="purple")
     ax.set_title("Regression: Error Distribution")
     ax.set_xlabel("Error value")
@@ -101,12 +109,11 @@ def create_super_dashboard(y_true_reg, y_pred_reg, mae, mse, r2,
     ax.grid(True)
 
     # -------------------------
-    # (3,1) DeDiPeak true vs predicted
+    # (1,1) DeDiPeak true vs predicted
     # -------------------------
-    ax = axes[2,0]
+    ax = axes[1,1]
     ax.plot(y_true_peak, label="y_true")
     ax.plot(y_pred_peak, label="y_pred", alpha=0.7)
-    # Peaks
     for metric_func, color in zip([P3E, P3sw], ["green","orange"]):
         val, info = metric_func(model=None, X=None, dataset=None,
                                 y_true=y_true_peak, y_pred=y_pred_peak)
@@ -125,23 +132,75 @@ def create_super_dashboard(y_true_reg, y_pred_reg, mae, mse, r2,
     ax.grid(True)
 
     # -------------------------
-    # (3,2) P3E/P3sw vs peak range
+    # (1,2) P3E/P3sw vs peak range
     # -------------------------
-    ax = axes[2,1]
-    peak_range = np.max(y_true_peak) - np.min(y_true_peak)
+    ax = axes[1,2]
     metrics_vals = [P3E_val, P3sw_val, peak_range]
     metrics_names = ["P3E","P3sw","Peak Range"]
     ax.bar(metrics_names, metrics_vals, color=["C0","C1","C2"])
     for i, v in enumerate(metrics_vals[:-1]):
-        percent = v/peak_range*100
-        ax.text(i, v+peak_range*0.02, f"{percent:.1f}%", ha='center')
+        percent = v / peak_range * 100
+        ax.text(i, v + peak_range*0.05, f"{v:.3f}\n({percent:.1f}%)\n(ideal 0)", ha='center')
     ax.set_title("Peak Metrics vs Signal Range")
     ax.set_ylabel("Value (same units as signal)")
     ax.grid(axis='y')
 
+    # -------------------------
+    # (2,0) Comparison: Regression vs DeDiPeak
+    # -------------------------
+    ax = axes[2,0]
+    x_labels = ["MAE", "MSE", "R²", "P3E", "P3sw"]
+    x_pos = np.arange(len(x_labels))
+    values_cmp = [mae, mse, r2, P3E_val, P3sw_val]
+    ideal_vals_cmp = [0, 0, 1, 0, 0]
+    ax.bar(x_pos, values_cmp, color=["C0","C1","C2","C3","C4"])
+    
+    # универсальный отступ для всех подписей
+    offset = max(values_cmp) * 0.05
+    for i, v in enumerate(values_cmp):
+        if i >= 3:
+            percent = v / peak_range * 100
+            ax.text(x_pos[i], v + offset, f"{v:.3f}\n({percent:.1f}%)\n(ideal 0)", ha='center')
+        else:
+            ax.text(x_pos[i], v + offset, f"{v:.3f}\n(ideal {ideal_vals_cmp[i]})", ha='center')
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(x_labels)
+    ax.set_title("Comparison: Regression vs DeDiPeak Metrics")
+    ax.set_ylabel("Metric Value")
+    ax.set_ylim(0, max(values_cmp)*1.25)
+    ax.grid(axis='y')
+
+    # -------------------------
+    # (2,1) Regression vs DeDiPeak Insight (200 points)
+    # -------------------------
+    ax = axes[2,1]
+    ax.plot(y_true_insight, label="y_true", alpha=0.8)
+    ax.plot(y_pred_insight, label="y_pred", alpha=0.6)
+    ax.plot(error_insight, label="regression error", color="red", alpha=0.7)
+    for metric_func, color in zip([P3E, P3sw], ["green","orange"]):
+        val, info = metric_func(model=None, X=None, dataset=None,
+                                y_true=y_true_insight, y_pred=y_pred_insight)
+        true_peaks = info.get("peaks_true", [])
+        pred_peaks = info.get("peaks_pred", [])
+        if len(true_peaks) > 0:
+            ax.scatter(true_peaks, y_true_insight[true_peaks],
+                       label=f"{metric_func.__name__} true peaks", marker="o", color=color)
+        if len(pred_peaks) > 0:
+            ax.scatter(pred_peaks, y_pred_insight[pred_peaks],
+                       label=f"{metric_func.__name__} predicted peaks", marker="x", color=color)
+    ax.set_title("Regression vs DeDiPeak Insight (200 points)")
+    ax.set_xlabel("Index")
+    ax.set_ylabel("Value")
+    ax.legend()
+    ax.grid(True)
+
+    # -------------------------
+    # (2,2) пустой
+    axes[2,2].axis('off')
+
     plt.tight_layout(rect=[0,0,1,0.96])
     plt.savefig(out_path, dpi=300)
-    plt.close()  # закрываем фигуру, чтобы не показывалась в интерактивном окне
+    plt.close()
     print(f"Dashboard saved to {out_path}")
 
 # -----------------------------
@@ -158,7 +217,15 @@ if __name__ == "__main__":
     P3E_val, _ = P3E(model=None, X=None, dataset=None, y_true=y_true_peak, y_pred=y_pred_peak)
     P3sw_val, _ = P3sw(model=None, X=None, dataset=None, y_true=y_true_peak, y_pred=y_pred_peak)
 
+    # Regression vs DeDiPeak Insight
+    y_true_insight, y_pred_insight = sample_n_rows(y_true_reg, y_pred_reg, INSIGHT_ROWS)
+    P3E_insight, _ = P3E(model=None, X=None, dataset=None, y_true=y_true_insight, y_pred=y_pred_insight)
+    P3sw_insight, _ = P3sw(model=None, X=None, dataset=None, y_true=y_true_insight, y_pred=y_pred_insight)
+
     # Dashboard
     out_path = OUTPUT_DIR / "super_dashboard.png"
     create_super_dashboard(y_true_reg_vis, y_pred_reg_vis, mae, mse, r2,
-                           y_true_peak, y_pred_peak, P3E_val, P3sw_val, out_path)
+                           y_true_peak, y_pred_peak, P3E_val, P3sw_val,
+                           y_true_insight, y_pred_insight,
+                           P3E_insight, P3sw_insight,
+                           out_path)
